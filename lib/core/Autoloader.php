@@ -14,7 +14,7 @@ class Autoloader {
 	
 	public static function loader($className) {
 		$thisClass = str_replace(__NAMESPACE__ . '\\', '', __CLASS__);
-		$baseDir = realpath(__DIR__ . DIRECTORY_SEPARATOR . '../../') . DIRECTORY_SEPARATOR;
+		$baseDir = SYSTEM_ROOT;
 		
 		if (substr($baseDir, -strlen($thisClass)) === $thisClass) {
 			$baseDir = substr($baseDir, 0, -strlen($thisClass));
@@ -35,6 +35,6 @@ class Autoloader {
 		if (file_exists($fileName)) {
 			require $fileName;
 			if (!class_exists($realClassName, false)) throw new Exception('Class is not exists');
-		} else throw new Exception('File is not exists');
+		}// else throw new Exception('File is not exists');
 	}
 }

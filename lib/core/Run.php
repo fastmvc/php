@@ -20,8 +20,12 @@ class Run {
 			$controllerObj->setController($controller);
 			$controllerObj->setAction($action);
 			$controllerObj->setParam($param);
-			if (method_exists($controllerObj, $action)) $controllerObj->$action();
-			else throw new Exception('Action is not exists');
+			$controllerObj->setView();
+			if (method_exists($controllerObj, $action)) {
+				$controllerObj->$action();
+				$controllerObj->display();
+			} else throw new Exception('Action is not exists');
 		} catch (Exception $e) {}
+		// else throw new Exception('File is not exists');
 	}
 }
