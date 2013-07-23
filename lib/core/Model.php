@@ -114,7 +114,7 @@ class Model {
 				}
 				$slaveNum = count(self::$_configSlave); //从服务器个数
 				$selectNum = mt_rand(0, $slaveNum - 1); //随机取一个从服务器
-    			$configSlave = self::$_configSlave[$selectNum];
+				$configSlave = self::$_configSlave[$selectNum];
 				
 				self::$_dbSlave = new \PDO($configSlave['dsn'], $configSlave['username'], $configSlave['password'], $configSlave['option']);
 				self::$_dbSlave->setAttribute(\PDO::ATTR_ERRMODE,  \PDO::ERRMODE_EXCEPTION);
