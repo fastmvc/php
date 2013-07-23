@@ -9,25 +9,54 @@
 namespace lib\core;
 
 class Uri {
+	/**
+	 * 控制器名称
+	 * @var unknown
+	 */
 	public static $controller = null;
+	
+	/**
+	 * 动作名称
+	 * @var unknown
+	 */
 	public static $action = null;
+	
+	/**
+	 * 参数
+	 * @var unknown
+	 */
 	public static $param = null;
 	
+	/**
+	 * 获取控制器
+	 * @return \lib\core\unknown
+	 */
 	public static function getController() {
 		self::$controller === null && self::dealUri();
 		return self::$controller;
 	}
 	
+	/**
+	 * 获取动作
+	 * @return \lib\core\unknown
+	 */
 	public static function getAction() {
 		self::$action === null && self::dealUri();
 		return self::$action;
 	}
 	
+	/**
+	 * 获取参数
+	 * @return \lib\core\unknown
+	 */
 	public static function getParam() {
 		self::$param === null && self::dealUri();
 		return self::$param;
 	}
 	
+	/**
+	 * 处理uri
+	 */
 	private static function dealUri() {
 		$uri = $_SERVER['REQUEST_URI'];
 		self::$controller = 'index';
@@ -56,16 +85,9 @@ class Uri {
 					}
 				} else {
 					//如果是GET方式，则认为其中必含c和a认为是controller和action，如果不含则认为是默认值
-					foreach ($_GET as $key => $value) {
-						if ($key == 'c') {
-							self::$controller = $value;
-							continue;
-						}
-						if ($key == 'a') {
-							self::$action = $value;
-							continue;
-						}
-						self::$param[$key] = $value;
+					self::addParam($_GET);
+					if (isset($_POST)) {
+						self::addParam($_POST);
 					}
 				}
 			}
@@ -74,6 +96,27 @@ class Uri {
 		self::dealParam();
 	}
 	
+	/**
+	 * 添加参数
+	 * @param unknown $array
+	 */
+	private static function addParam(& $array) {
+		foreach ($array as $key => $value) {
+			if ($key == 'c') {
+				self::$controller = $value;
+				continue;
+			}
+			if ($key == 'a') {
+				self::$action = $value;
+				continue;
+			}
+			self::$param[$key] = $value;
+		}
+	}
+	
+	/**
+	 * 过滤参数
+	 */
 	private static function dealParam() {
 		//do self::$param;
 	}

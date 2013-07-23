@@ -11,9 +11,12 @@ require SYSTEM_LIB . 'smarty/Smarty.class.php';
 
 class View extends \Smarty {
 	
-	public function __construct($config) {
+	public function __construct() {
+		//实例化smarty对象
 		parent::__construct();
 		
+		//加载并设置配置
+		$config = Config::smarty();
 		$this->debugging = $config['debug'];
 		$this->caching = $config['caching'] ? $config['caching'] : \Smarty::CACHING_LIFETIME_CURRENT;
 		$this->cache_lifetime = $config['cache_lifetime'];

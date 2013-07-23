@@ -10,13 +10,17 @@ namespace lib\core;
 
 class Run {
 	
+	/**
+	 * 启动框架
+	 * @throws Exception
+	 */
 	public static function start() {
 		$controller = Uri::getController();
 		$action = Uri::getAction();
 		$param = Uri::getParam();
 		$class = 'app\controller\\' . ucfirst($controller);
 		try {
-			$controllerObj = new $class;
+			$controllerObj = new $class; //此处不知为什么无法截获类不存在的异常
 			$controllerObj->setController($controller);
 			$controllerObj->setAction($action);
 			$controllerObj->setParam($param);
