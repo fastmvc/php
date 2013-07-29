@@ -45,6 +45,18 @@ class Model {
 	 */
 	private static $_configSlave = null;
 	
+	/**
+	 * 字符集
+	 * @var unknown
+	 */
+	private static $_charset = 'utf8';
+	
+	/**
+	 * 表前缀
+	 * @var unknown
+	 */
+	private static $_prefix = '';
+	
 	public function __construct() {
 		
 	}
@@ -54,8 +66,10 @@ class Model {
 	 * @param unknown $sql
 	 */
 	protected function fetchAll($sql) {
-		$stmt = self::getDbSlave()->query($sql);
-		return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+		$stmt = self::getDbSlave()->prepare($sql);
+		$flag = $stmt->execute();
+		if ($flag) return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+		return array();
 	}
 	
 	/**
@@ -64,8 +78,99 @@ class Model {
 	 * @return mixed
 	 */
 	protected function fetchOne($sql) {
-		$stmt = self::getDbSlave()->query($sql);
-		return $stmt->fetch(\PDO::FETCH_ASSOC);
+		$stmt = self::getDbSlave()->prepare($sql);
+		$flag = $stmt->execute();
+		if ($flag) return $stmt->fetch(\PDO::FETCH_ASSOC);
+		return array();
+	}
+	
+	/**
+	 * 插入操作
+	 * @param unknown $table
+	 * @param unknown $data
+	 * @param string $insertId
+	 * @return number
+	 */
+	protected function insert($table, $data, $insertId = true) {
+		$dbh = self::getDbMaster();
+		$keys = array_keys($data);
+		$values = array_values($data);
+		$fields = '`' . implode('`,`', $keys) . '`';
+		$placeHolders = implode(',', array_fill(0, count($keys), '?'));
+		$table = self::$_prefix . $table;
+		$stmt = $dbh->prepare("INSERT INTO `$table`($fields) VALUES($placeHolders)");
+		$flag = $stmt->execute($values);
+		if (!$flag) return 0;
+		if ($insertId) return $dbh->lastinsertid();
+		return $stmt->rowCount();
+	}
+	
+	/**
+	 * 更新操作
+	 * @param unknown $table
+	 * @param unknown $data
+	 * @param unknown $where
+	 * @return number
+	 */
+	protected function update($table, $data, $where) {
+		$dbh = self::getDbMaster();
+		$set = $comma = '';
+		foreach ($data as $key => $value) {
+			$set .= "$comma`$key`='$value'";
+			$comma = ',';
+		}
+		$table = self::$_prefix . $table;
+		$stmt = $dbh->prepare("UPDATE `$table` SET $set WHERE $where");
+		$flag = $stmt->execute();
+		if (!$flag) return 0;
+		return $stmt->rowCount();
+	}
+	
+	/**
+	 * 删除操作
+	 * @param unknown $table
+	 * @param unknown $where
+	 * @return number
+	 */
+	protected function delete($table, $where) {
+		$dbh = self::getDbMaster();
+		$table = self::$_prefix . $table;
+		$stmt = $dbh->prepare("DELETE FROM `$table` WHERE $where");
+		$flag = $stmt->execute();
+		if (!$flag) return 0;
+		return $stmt->rowCount();
+	}
+	
+	/**
+	 * 开启事务
+	 */
+	protected function beginTransaction() {
+		self::useMaster();
+		self::getDbMaster()->beginTransaction();
+	}
+	
+	/**
+	 * 提交事务
+	 */
+	protected function commit() {
+		self::useMaster();
+		self::getDbMaster()->commit();
+	}
+	
+	/**
+	 * 回滚事务
+	 */
+	protected function rollBack() {
+		self::useMaster();
+		self::getDbMaster()->rollBack();
+	}
+	
+	/**
+	 * 获取表前缀
+	 * @return Ambigous <string, \lib\core\unknown>
+	 */
+	protected static function getPrefix() {
+		return self::$_prefix ? self::$_prefix : '';
 	}
 	
 	/**
@@ -84,13 +189,16 @@ class Model {
 				//加载主库配置
 				if (self::$_configMaster === null) {
 					self::$_configMaster = Config::database();
+					self::$_charset = self::$_configMaster['charset'];
+					self::$_prefix = self::$_configMaster['prefix'];
 					self::$_configMaster = self::$_configMaster['master'];
 				}
 				
 				self::$_dbMaster = new \PDO(self::$_configMaster['dsn'], self::$_configMaster['username'], self::$_configMaster['password'], self::$_configMaster['option']);
 				self::$_dbMaster->setAttribute(\PDO::ATTR_ERRMODE,  \PDO::ERRMODE_EXCEPTION);
+				self::$_dbMaster->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false); //禁用prepared statements的仿真效果, 这可以确保SQL语句和相应的值在传递到mysql服务器之前是不会被PHP解析的（禁止了所有可能的恶意SQL注入攻击
 			
-				self::$_dbMaster->exec('SET CHARACTER SET ' . self::$_configMaster['charset']);
+				self::$_dbMaster->exec('SET CHARACTER SET ' . self::$_charset);
 				//self::$_dbMaster = null;  //断开连接
 			} catch (\PDOException $e) {
 				self::$_dbMaster = null;
@@ -110,6 +218,8 @@ class Model {
 				//加载从库配置
 				if (self::$_configSlave === null) {
 					self::$_configSlave = Config::database();
+					self::$_charset = self::$_configSlave['charset'];
+					self::$_prefix = self::$_configSlave['prefix'];
 					self::$_configSlave = self::$_configSlave['slave'];
 				}
 				$slaveNum = count(self::$_configSlave); //从服务器个数
@@ -118,8 +228,9 @@ class Model {
 				
 				self::$_dbSlave = new \PDO($configSlave['dsn'], $configSlave['username'], $configSlave['password'], $configSlave['option']);
 				self::$_dbSlave->setAttribute(\PDO::ATTR_ERRMODE,  \PDO::ERRMODE_EXCEPTION);
+				self::$_dbSlave->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false); //禁用prepared statements的仿真效果
 					
-				self::$_dbSlave->exec('SET CHARACTER SET ' . $configSlave['charset']);
+				self::$_dbSlave->exec('SET CHARACTER SET ' . self::$_charset);
 				//self::$_dbSlave = null;  //断开连接
 			} catch (\PDOException $e) {
 				//排除连接失败的从服务器

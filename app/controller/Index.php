@@ -22,7 +22,6 @@ class Index extends Controller {
 		//var_dump($this->_view);
 		$memberModel = new Member();
 		$memberModel->getMember();
-		$memberModel->getMemberOne();
 		$this->_view->assign('ok', 'good');
 	}
 }

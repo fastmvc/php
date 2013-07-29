@@ -8,26 +8,37 @@
 
 return array(
 		'master' => array(
-				'dsn' 		=> 'mysql:host=211.88.253.15;port=33061;dbname=trade2cn',
-				'username'	=> 'trade2cn',
-				'password'	=> '123456',
-				'charset'	=> 'utf8',
+				'dsn' 		=> 'mysql:host=211.88.253.16;port=33061;dbname=test',
+				'username'	=> 'root',
+				'password'	=> 'abc123',
 				'option'	=> null,
 		),
 		'slave' => array(
 			array(
-				'dsn' 		=> 'mysql:host=211.88.253.15;port=33062;dbname=trade2cn',
-				'username'	=> 'trade2cn',
-				'password'	=> '123456',
-				'charset'	=> 'utf8',
+				'dsn' 		=> 'mysql:host=211.88.253.16;port=33062;dbname=test',
+				'username'	=> 'root',
+				'password'	=> 'abc123',
 				'option'	=> null,
 			),
 			array(
-				'dsn' 		=> 'mysql:host=211.88.253.15;port=33062;dbname=trade2cn',
-				'username'	=> 'trade2cn',
-				'password'	=> '123456',
-				'charset'	=> 'utf8',
+				'dsn' 		=> 'mysql:host=211.88.253.16;port=33062;dbname=test',
+				'username'	=> 'root',
+				'password'	=> 'abc123',
 				'option'	=> null,
 			),
 		),
+		'charset'	=> 'utf8',
+		'prefix' => '',
 );
+
+/**
+CREATE TABLE `user` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(60) NOT NULL DEFAULT '' COMMENT '用户名',
+  `add_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '添加时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+USE test;
+INSERT INTO `user` (name,add_time) VALUES ('bishenghua', '3234567890');
+INSERT INTO `user` (name,add_time) VALUES ('liuboqing', '3234565215');
+ */
